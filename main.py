@@ -14,6 +14,7 @@ def main():
     # Generate population
     population = myClasses.Population(max_iter,max_generations,initial_generation_size);
 
+    # Search for optimal solution
     for i in range(max_iter):
         population.evaluateGeneration();
         solution = population.checkGeneration();

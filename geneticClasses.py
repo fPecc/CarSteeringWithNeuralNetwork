@@ -16,7 +16,7 @@ def sigmoid(x):
 
 def relu(x):
     '''
-    
+
     :param x:
     :return:
     '''
