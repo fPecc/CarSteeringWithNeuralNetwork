@@ -7,9 +7,19 @@ first_hidden_layer_size = 15;
 total_checkpoints = 100;
 
 def sigmoid(x):
+    '''
+
+    :param x:
+    :return:
+    '''
     return (1/(1+np.exp(-x)));
 
 def relu(x):
+    '''
+    
+    :param x:
+    :return:
+    '''
     return x * (x > 0);
 
 class Population():
