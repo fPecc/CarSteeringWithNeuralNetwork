@@ -23,10 +23,37 @@ class Population():
             '''
             Agregar logica para probar cada red con el modelo!!
             '''
-            self.generation[i].selection_probability = checkpoints * 100 / total_checkpoints;
+            self.generation[i].selection_probability = checkpoints / total_checkpoints;
 
     def generateNewGeneration(self):
+        new_generation = [Individual() for i in range(len(self.generation))];
+        for i in range(len(self.generation)):
+            # Seleccion de los padres para cada individuo de la nueva generacion
+            posible_fathers = [];
+            adaptative_threshold = 1.;
+            while len(posible_fathers) < 2:
+                threshold = np.random.uniform(0,1.*adaptative_threshold);
+                posible_fathers = [ind if (ind.selection_probability > threshold) for ind in self.generation];
+                adaptative_threshold -= 0.1;
+            father_index = np.random.randint(0,len(posible_fathers));
+            mother_index = np.random.randint(0, len(posible_fathers));
+            while mother_index == father_index:
+                mother_index = np.random.randint(0, len(posible_fathers));
 
+            father = self.generation[father_index];
+            mother = self.generation[mother_index];
+
+            weights_1 = np.mean([father.weights_1,mother.weights_1]);
+            bias_1 = np.mean([father.bias_1, mother.bias_1]);
+            weights_2 = np.mean([father.weights_2, mother.weights_2]);
+            bias_2 = np.mean([father.bias_2, mother.bias_2]);
+
+            new_generation[i].weights_1 = np.copy(weights_1);
+            new_generation[i].bias_1 = np.copy(bias_1);
+            new_generation[i].weights_2 = np.copy(weights_2);
+            new_generation[i].bias_2 = np.copy(bias_2);
+
+        self.generation = new_generation;
         return;
 
     def applyRandomMutation(self):
