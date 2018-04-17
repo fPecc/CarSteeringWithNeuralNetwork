@@ -35,7 +35,7 @@ class Population():
             adaptative_threshold = 1.;
             while len(posible_fathers) < 2:
                 threshold = np.random.uniform(0,1.*adaptative_threshold);
-                posible_fathers = [ind if (ind.selection_probability > threshold) for ind in self.generation];
+                posible_fathers = [ind for ind in self.generation if (ind.selection_probability > threshold)];
                 adaptative_threshold -= 0.1;
             father_index = np.random.randint(0,len(posible_fathers));
             mother_index = np.random.randint(0, len(posible_fathers));
