@@ -25,6 +25,7 @@ def main():
 
         population.applyRandomMutation(mutation_probability);
 
+    # If there is no perfect solution, look for the one with the highest selection probability
     if not solution:
         solution = population.getBestGeneration();
 
@@ -36,7 +37,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print("Sintax is:");
         print("python main.py <max_iter> <max_generations> <initial_generation_size>");
     else:

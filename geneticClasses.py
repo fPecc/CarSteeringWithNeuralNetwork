@@ -161,15 +161,15 @@ class Individual():
         :param sensor_inputs: entradas de los sensores (vector de unos y ceros)
         :return: steer en un rango de (:) y accelerator en un rango de (:)
         '''
-        first_layer_activation = sensor_inputs*self.weights_1+self.bias_1;
+        first_layer_activation = np.dot(sensor_inputs,self.weights_1)+self.bias_1;
         if self.layer1_activation_function == "relu":
             first_layer_activation = relu(first_layer_activation);
         elif self.layer1_activation_function == "sigmoid":
             first_layer_activation = sigmoid(first_layer_activation);
 
-        output_layer_activation = first_layer_activation * self.weights_2 + self.bias_2;
-        steer = output_layer_activation[0];
-        accelerator = sigmoid(output_layer_activation[1]);
+        output_layer_activation = np.dot(first_layer_activation ,self.weights_2) + self.bias_2;
+        steer = output_layer_activation[0,0];
+        accelerator = sigmoid(output_layer_activation[0,1]);
 
         return [steer,accelerator];
 
