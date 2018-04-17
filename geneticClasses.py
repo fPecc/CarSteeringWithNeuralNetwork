@@ -1,3 +1,4 @@
+# coding=utf-8
 import numpy as np
 
 sensors = 10;
@@ -13,11 +14,22 @@ def relu(x):
 
 class Population():
     def __init__(self,max_iter,max_generations,initial_generation_size):
+        '''
+
+        :param max_iter:
+        :param max_generations:
+        :param initial_generation_size:
+        '''
         self.max_iter = max_iter;
         self.max_generations = max_generations;
         self.generation = [Individual() for i in range(initial_generation_size)];
 
     def evaluateGeneration(self):
+        '''
+        Funcion que evalua cada individuo de una generación y le asigna una determinada probabilidad de selección a cada
+        uno, dependiendo de cuandos checkpoints haya alcanzado ese individuo.
+        :return: None
+        '''
         for i in range(len(self.generation)):
             test_individual = self.generation[i];
             '''
@@ -28,6 +40,10 @@ class Population():
             self.generation[i].selection_probability = checkpoints / total_checkpoints;
 
     def generateNewGeneration(self):
+        '''
+
+        :return:
+        '''
         new_generation = [Individual() for i in range(len(self.generation))];
         for i in range(len(self.generation)):
             # Seleccion de los padres para cada individuo de la nueva generacion
@@ -45,23 +61,44 @@ class Population():
             father = self.generation[father_index];
             mother = self.generation[mother_index];
 
-            weights_1 = np.mean([father.weights_1,mother.weights_1]);
-            bias_1 = np.mean([father.bias_1, mother.bias_1]);
-            weights_2 = np.mean([father.weights_2, mother.weights_2]);
-            bias_2 = np.mean([father.bias_2, mother.bias_2]);
-
-            new_generation[i].weights_1 = np.copy(weights_1);
-            new_generation[i].bias_1 = np.copy(bias_1);
-            new_generation[i].weights_2 = np.copy(weights_2);
-            new_generation[i].bias_2 = np.copy(bias_2);
+            new_generation[i] = self.createSon(father,mother,mode="mean");
 
         self.generation = new_generation;
         return;
 
+    def createSon(self,father,mother,mode="mean"):
+        '''
+        Funcion que crea un hijo dependiendo de los atributos de los padres.
+        :param father: individuo padre
+        :param mother: individuo madre
+        :param mode: variable para controlar la forma en la cual se conbinan los padres
+        :return: un individuo que contiene caracteristicas de ambos padres
+        '''
+        if mode == "mean":
+            weights_1 = np.mean([father.weights_1, mother.weights_1]);
+            bias_1 = np.mean([father.bias_1, mother.bias_1]);
+            weights_2 = np.mean([father.weights_2, mother.weights_2]);
+            bias_2 = np.mean([father.bias_2, mother.bias_2]);
+        else:
+            weights_1 = None;
+            bias_1 = None;
+            weights_2 = None;
+            bias_2 = None;
+
+        return Individual(weights_1,bias_1,weights_2,bias_2);
+
     def applyRandomMutation(self):
+        '''
+
+        :return:
+        '''
         return;
 
     def checkGeneration(self):
+        '''
+        Funcion que controla si ya se logro encontrar un hijo óptimo
+        :return: None si no hay ningún hijo perfecto, el individuo si lo hay.
+        '''
         for i in range(len(self.generation)):
             if self.generation[i].selection_probability == 1.:
                 return self.generation[i];
@@ -69,6 +106,10 @@ class Population():
         return None;
 
     def getBestGeneration(self):
+        '''
+
+        :return:
+        '''
         best_prob = self.generation[0].selection_probability;
         best_index = 0;
         for i in range(len(self.generation)):
@@ -81,6 +122,13 @@ class Population():
 
 class Individual():
     def __init__(self,weights_1 = None,bias_1 = None,weights_2 = None,bias_2 = None):
+        '''
+
+        :param weights_1:
+        :param bias_1:
+        :param weights_2:
+        :param bias_2:
+        '''
         if not weights_1:
             self.weights_1 = np.random.uniform(-1,1,[sensors,first_hidden_layer_size]);
             self.bias_1 = np.random.uniform(-1,1,[1,first_hidden_layer_size]);
@@ -96,6 +144,11 @@ class Individual():
         self.selection_probability = 0.0;
 
     def calculateOutputs(self,sensor_inputs):
+        '''
+
+        :param sensor_inputs:
+        :return:
+        '''
         first_layer_activation = sensor_inputs*self.weights_1+self.bias_1;
         if self.layer1_activation_function == "relu":
             first_layer_activation = relu(first_layer_activation);
