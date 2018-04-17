@@ -1,9 +1,13 @@
 # coding=utf-8
 import numpy as np
 
+# variable global para setear la cantidad de sensores
 sensors = 10;
+# variable global para setear la cantidad de salidas
 outputs = 2;
+# variable global que setea la cantidad de neuronas de la capa oculta
 first_hidden_layer_size = 15;
+# variable global que setea la cantidad de checkpoints que hay en total en la pista
 total_checkpoints = 100;
 
 def sigmoid(x):
@@ -43,9 +47,7 @@ class Population():
         for i in range(len(self.generation)):
             test_individual = self.generation[i];
             '''
-            Agregar logica para probar cada red con el modelo!!
-            Meterle a la funcion calculateOutput de test_individual los sensores (en formato unos y ceros). Devuelve un
-            tuple donde el primer elemento es steer [] y el segundo el acelerador ()
+            Agregar acá logica para probar cada individuo con el modelo de blender!!
             '''
             self.generation[i].selection_probability = checkpoints / total_checkpoints;
 
@@ -134,10 +136,10 @@ class Individual():
     def __init__(self,weights_1 = None,bias_1 = None,weights_2 = None,bias_2 = None):
         '''
 
-        :param weights_1:
-        :param bias_1:
-        :param weights_2:
-        :param bias_2:
+        :param weights_1: pesos de la primera capa para inicializacion
+        :param bias_1: bias de la primera capa para inicializacion
+        :param weights_2: pesos de la segunda capa para inicializacion
+        :param bias_2: bias de la segunda capa para inicializacion
         '''
         if not weights_1:
             self.weights_1 = np.random.uniform(-1,1,[sensors,first_hidden_layer_size]);
@@ -156,8 +158,8 @@ class Individual():
     def calculateOutputs(self,sensor_inputs):
         '''
 
-        :param sensor_inputs:
-        :return:
+        :param sensor_inputs: entradas de los sensores (vector de unos y ceros)
+        :return: steer en un rango de (:) y accelerator en un rango de (:)
         '''
         first_layer_activation = sensor_inputs*self.weights_1+self.bias_1;
         if self.layer1_activation_function == "relu":
