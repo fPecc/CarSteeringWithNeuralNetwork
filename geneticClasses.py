@@ -22,6 +22,8 @@ class Population():
             test_individual = self.generation[i];
             '''
             Agregar logica para probar cada red con el modelo!!
+            Meterle a la funcion calculateOutput de test_individual los sensores (en formato unos y ceros). Devuelve un
+            tuple donde el primer elemento es steer [] y el segundo el acelerador ()
             '''
             self.generation[i].selection_probability = checkpoints / total_checkpoints;
 
