@@ -10,7 +10,7 @@ outputs = 2;
 # variable global que setea la cantidad de neuronas de la capa oculta
 first_hidden_layer_size = 15;
 # variable global que setea la cantidad de checkpoints que hay en total en la pista
-total_checkpoints = 100;
+total_checkpoints = 131;
 
 def sigmoid(x):
     '''
@@ -51,13 +51,18 @@ class Population():
             '''
             Agregar acá logica para probar cada individuo con el modelo de blender!!
             '''
-            self.generation[i].selection_probability = checkpoints / total_checkpoints;
+            
+            #self.generation[i].selection_probability = checkpoints / total_checkpoints;
+            self.generation[i].selection_probability = self.generation[i].physical['waypoints'] / total_checkpoints
 
     def generateNewGeneration(self):
         '''
 
-        :return:
+        quisto90: First: delete all physical objects from previous generation
         '''
+        for i in range(len(self.generation)):
+            self.generation[i].physical.endObject()
+
         new_generation = [Individual() for i in range(len(self.generation))];
         for i in range(len(self.generation)):
             # Seleccion de los padres para cada individuo de la nueva generacion
@@ -159,6 +164,7 @@ class Individual():
         self.layer1_activation_function = "relu";
         self.selection_probability = 0.0;
 
+	#quisto90: First: create physical
         self.physical = scene.addObject("car","car")
 
     def calculateOutputs(self,sensor_inputs):
