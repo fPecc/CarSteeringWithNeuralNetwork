@@ -1,5 +1,7 @@
 # coding=utf-8
 import numpy as np
+import bge
+scene = bge.logic.getCurrentScene()
 
 # variable global para setear la cantidad de sensores
 sensors = 10;
@@ -140,7 +142,9 @@ class Individual():
         :param bias_1: bias de la primera capa para inicializacion
         :param weights_2: pesos de la segunda capa para inicializacion
         :param bias_2: bias de la segunda capa para inicializacion
+
         '''
+
         if not weights_1:
             self.weights_1 = np.random.uniform(-1,1,[sensors,first_hidden_layer_size]);
             self.bias_1 = np.random.uniform(-1,1,[1,first_hidden_layer_size]);
@@ -154,6 +158,8 @@ class Individual():
 
         self.layer1_activation_function = "relu";
         self.selection_probability = 0.0;
+
+        self.physical = scene.addObject("car","car")
 
     def calculateOutputs(self,sensor_inputs):
         '''
