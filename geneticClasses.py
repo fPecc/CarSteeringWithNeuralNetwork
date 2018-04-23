@@ -166,7 +166,7 @@ class Individual():
         self.layer1_activation_function = "relu";
         self.selection_probability = 0.0;
 
-	#quisto90: First: create physical
+        # quisto90: First: create physical
         self.physical = scene.addObject("car","car")
 
     def calculateOutputs(self,sensor_inputs):
@@ -186,5 +186,12 @@ class Individual():
         accelerator = sigmoid(output_layer_activation[0,1]);
 
         return [steer,accelerator];
+
+    def getHistograms(self):
+        weights1_dist, bin_edges = np.histogram(self.weights_1,bins=100,range=(-1,1));
+        weights2_dist, bin_edges = np.histogram(self.weights_2, bins=100, range=(-1, 1));
+        bias1_dist, bin_edges = np.histogram(self.bias_1, bins=100, range=(-1, 1));
+        bias2_dist, bin_edges = np.histogram(self.bias_2, bins=100, range=(-1, 1));
+        return [weights1_dist,bias1_dist,weights2_dist,bias2_dist];
 
 
