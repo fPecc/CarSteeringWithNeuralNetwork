@@ -36,9 +36,10 @@ class Population():
         :param max_generations:
         :param initial_generation_size:
         '''
-        self.max_iter = max_iter;
-        self.max_generations = max_generations;
-        self.generation = [Individual() for i in range(initial_generation_size)];
+        self.max_iter = max_iter
+        self.max_generations = max_generations
+        self.generation = [Individual() for i in range(initial_generation_size)]
+        self.generation_number = 0
 
     def evaluateGeneration(self):
         '''
@@ -83,6 +84,7 @@ class Population():
             new_generation[i] = self.createSon(father,mother,mode="mean");
 
         self.generation = new_generation;
+        self.generation_number += 1;
         return;
 
     def createSon(self,father,mother,mode="mean"):
