@@ -96,10 +96,18 @@ class Population():
         :return: un individuo que contiene caracteristicas de ambos padres
         '''
         if mode == "mean":
-            weights_1 = np.mean([father.weights_1, mother.weights_1]);
-            bias_1 = np.mean([father.bias_1, mother.bias_1]);
-            weights_2 = np.mean([father.weights_2, mother.weights_2]);
-            bias_2 = np.mean([father.bias_2, mother.bias_2]);
+            #weights_1 = np.mean([father.weights_1, mother.weights_1]);
+            #bias_1 = np.mean([father.bias_1, mother.bias_1]);
+            #weights_2 = np.mean([father.weights_2, mother.weights_2]);
+            #bias_2 = np.mean([father.bias_2, mother.bias_2]);
+            weights_1 = (np.array(father.weights_1) + np.array(mother.weights_1)) / 2
+            bias_1 = (np.array(father.bias_1) + np.array(mother.bias_1)) / 2
+            weights_2 = (np.array(father.weights_2) + np.array(mother.weights_2)) / 2
+            bias_2 = (np.array(father.bias_2) + np.array(mother.bias_2)) / 2
+            #weights_1 = (father.weights_1 + mother.weights_1) / 2
+            #bias_1 =    (father.bias_1    + mother.bias_1   ) / 2
+            #weights_2 = (father.weights_2 + mother.weights_2) / 2
+            #bias_2 =    (father.bias_2    + mother.bias_2   ) / 2
         else:
             weights_1 = None;
             bias_1 = None;
@@ -152,7 +160,7 @@ class Individual():
 
         '''
 
-        if not weights_1:
+        if not np.all(weights_1):
             self.weights_1 = np.random.uniform(-1,1,[sensors,first_hidden_layer_size]);
             self.bias_1 = np.random.uniform(-1,1,[1,first_hidden_layer_size]);
             self.weights_2 = np.random.uniform(-1, 1, [first_hidden_layer_size,outputs]);
