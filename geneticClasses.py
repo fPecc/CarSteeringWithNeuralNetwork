@@ -56,13 +56,15 @@ class Population():
             #self.generation[i].selection_probability = checkpoints / total_checkpoints;
             self.generation[i].selection_probability = self.generation[i].physical['waypoints'] / total_checkpoints
 
-    def generateNewGeneration(self):
+    def removeIndividuals(self):
         '''
 
         quisto90: First: delete all physical objects from previous generation
         '''
         for i in range(len(self.generation)):
             self.generation[i].physical.endObject()
+
+    def generateNewGeneration(self):
 
         new_generation = [Individual() for i in range(len(self.generation))];
         for i in range(len(self.generation)):
