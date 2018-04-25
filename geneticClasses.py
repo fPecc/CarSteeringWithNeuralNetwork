@@ -110,15 +110,24 @@ class Population():
             #bias_1 =    (father.bias_1    + mother.bias_1   ) / 2
             #weights_2 = (father.weights_2 + mother.weights_2) / 2
             #bias_2 =    (father.bias_2    + mother.bias_2   ) / 2
-        if mode == "diff":
+        if mode == "small_step":
             diff = np.array(father.weights_1)-np.array(mother.weights_1);
-            weights_1 += np.random.uniform(0.,1.)*diff;
+            weights_1 = np.array(father.weights_1) + np.random.uniform(0.,1.)*diff;
             diff = np.array(father.bias_1) - np.array(mother.bias_1);
-            bias_1 += np.random.uniform(0., 1.) * diff;
+            bias_1 = np.array(father.bias_1) + np.random.uniform(0., 1.) * diff;
             diff = np.array(father.weights_2) - np.array(mother.weights_2);
-            weights_2 += np.random.uniform(0., 1.) * diff;
+            weights_2 = np.array(father.weights_2) + np.random.uniform(0., 1.) * diff;
             diff = np.array(father.bias_2) - np.array(mother.bias_2);
-            bias_2 += np.random.uniform(0., 1.) * diff;
+            bias_2 = np.array(father.bias_2) + np.random.uniform(0., 1.) * diff;
+        if mode == "diff":
+            diff = np.array(father.weights_1) - np.array(mother.weights_1);
+            weights_1 = diff;
+            diff = np.array(father.bias_1) - np.array(mother.bias_1);
+            bias_1 = diff;
+            diff = np.array(father.weights_2) - np.array(mother.weights_2);
+            weights_2 = diff;
+            diff = np.array(father.bias_2) - np.array(mother.bias_2);
+            bias_2 = diff;
         else:
             weights_1 = None;
             bias_1 = None;
