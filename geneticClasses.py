@@ -38,7 +38,7 @@ class Population():
         '''
         self.max_iter = max_iter
         self.max_generations = max_generations
-        self.generation = [Individual() for i in range(initial_generation_size)]
+        self.generation = [Individual(i) for i in range(initial_generation_size)]
         self.generation_number = 0
 
     def evaluateGeneration(self):
@@ -62,11 +62,12 @@ class Population():
         quisto90: First: delete all physical objects from previous generation
         '''
         for i in range(len(self.generation)):
+            print('removed: ',self.generation[i].physical.name)
             self.generation[i].physical.endObject()
 
     def generateNewGeneration(self):
 
-        new_generation = [Individual() for i in range(len(self.generation))];
+        new_generation = [Individual(i) for i in range(len(self.generation))];
         for i in range(len(self.generation)):
             # Seleccion de los padres para cada individuo de la nueva generacion
             posible_fathers = [];
@@ -110,24 +111,15 @@ class Population():
             #bias_1 =    (father.bias_1    + mother.bias_1   ) / 2
             #weights_2 = (father.weights_2 + mother.weights_2) / 2
             #bias_2 =    (father.bias_2    + mother.bias_2   ) / 2
-        if mode == "small_step":
-            diff = np.array(father.weights_1)-np.array(mother.weights_1);
-            weights_1 = np.array(father.weights_1) + np.random.uniform(0.,1.)*diff;
-            diff = np.array(father.bias_1) - np.array(mother.bias_1);
-            bias_1 = np.array(father.bias_1) + np.random.uniform(0., 1.) * diff;
-            diff = np.array(father.weights_2) - np.array(mother.weights_2);
-            weights_2 = np.array(father.weights_2) + np.random.uniform(0., 1.) * diff;
-            diff = np.array(father.bias_2) - np.array(mother.bias_2);
-            bias_2 = np.array(father.bias_2) + np.random.uniform(0., 1.) * diff;
         if mode == "diff":
-            diff = np.array(father.weights_1) - np.array(mother.weights_1);
-            weights_1 = diff;
+            diff = np.array(father.weights_1)-np.array(mother.weights_1);
+            weights_1 += np.random.uniform(0.,1.)*diff;
             diff = np.array(father.bias_1) - np.array(mother.bias_1);
-            bias_1 = diff;
+            bias_1 += np.random.uniform(0., 1.) * diff;
             diff = np.array(father.weights_2) - np.array(mother.weights_2);
-            weights_2 = diff;
+            weights_2 += np.random.uniform(0., 1.) * diff;
             diff = np.array(father.bias_2) - np.array(mother.bias_2);
-            bias_2 = diff;
+            bias_2 += np.random.uniform(0., 1.) * diff;
         else:
             weights_1 = None;
             bias_1 = None;
@@ -170,7 +162,7 @@ class Population():
 
 
 class Individual():
-    def __init__(self,weights_1 = None,bias_1 = None,weights_2 = None,bias_2 = None):
+    def __init__(self,index,weights_1 = None,bias_1 = None,weights_2 = None,bias_2 = None):
         '''
 
         :param weights_1: pesos de la primera capa para inicializacion
@@ -196,6 +188,7 @@ class Individual():
 
         # quisto90: First: create physical
         self.physical = scene.addObject("car","car")
+        self.physical.name = "car"+str(index)
 
     def calculateOutputs(self,sensor_inputs):
         '''
