@@ -4,13 +4,13 @@ import bge
 scene = bge.logic.getCurrentScene()
 
 # variable global para setear la cantidad de sensores
-sensors = 10;
+sensors = 10
 # variable global para setear la cantidad de salidas
-outputs = 2;
+outputs = 2
 # variable global que setea la cantidad de neuronas de la capa oculta
-first_hidden_layer_size = 15;
+first_hidden_layer_size = 15
 # variable global que setea la cantidad de checkpoints que hay en total en la pista
-total_checkpoints = 131;
+total_checkpoints = 131
 
 def sigmoid(x):
     '''
@@ -18,7 +18,7 @@ def sigmoid(x):
     :param x:
     :return:
     '''
-    return (1/(1+np.exp(-x)));
+    return (1/(1+np.exp(-x)))
 
 def relu(x):
     '''
@@ -26,7 +26,7 @@ def relu(x):
     :param x:
     :return:
     '''
-    return x * (x > 0);
+    return x * (x > 0)
 
 class Population():
     def __init__(self,max_iter,max_generations,initial_generation_size):
@@ -38,8 +38,11 @@ class Population():
         '''
         self.max_iter = max_iter
         self.max_generations = max_generations
-        self.generation = [Individual(i) for i in range(initial_generation_size)]
         self.generation_number = 0
+        self.generation = [Individual(i, self.generation_number) for i in range(initial_generation_size)]
+        for i in self.generation:
+            i.physical = scene.addObject("car", "car")
+
 
     def evaluateGeneration(self):
         '''
@@ -48,49 +51,52 @@ class Population():
         :return: None
         '''
         for i in range(len(self.generation)):
-            test_individual = self.generation[i];
+            test_individual = self.generation[i]
             '''
             Agregar acá logica para probar cada individuo con el modelo de blender!!
             '''
             
-            #self.generation[i].selection_probability = checkpoints / total_checkpoints;
+            #self.generation[i].selection_probability = checkpoints / total_checkpoints
             self.generation[i].selection_probability = self.generation[i].physical['waypoints'] / total_checkpoints
 
-    def removeIndividuals(self):
+    def removeGeneration(self):
         '''
 
         quisto90: First: delete all physical objects from previous generation
         '''
         for i in range(len(self.generation)):
-            print('removed: ',self.generation[i].physical.name)
-            self.generation[i].physical.endObject()
+            self.generation[i].removeIndividual()
+            #print('removed: ',self.generation[i].name)
 
     def generateNewGeneration(self):
 
-        new_generation = [Individual(i) for i in range(len(self.generation))];
+        self.generation_number += 1
+        new_generation = [Individual(i,self.generation_number) for i in range(len(self.generation))]
         for i in range(len(self.generation)):
             # Seleccion de los padres para cada individuo de la nueva generacion
-            posible_fathers = [];
-            adaptative_threshold = 1.;
+            posible_fathers = []
+            adaptative_threshold = 1.
             while len(posible_fathers) < 2:
-                threshold = np.random.uniform(0,1.*adaptative_threshold);
-                posible_fathers = [ind for ind in self.generation if (ind.selection_probability > threshold)];
-                adaptative_threshold -= 0.1;
-            father_index = np.random.randint(0,len(posible_fathers));
-            mother_index = np.random.randint(0, len(posible_fathers));
+                threshold = np.random.uniform(0,1.*adaptative_threshold)
+                posible_fathers = [ind for ind in self.generation if (ind.selection_probability > threshold)]
+                adaptative_threshold -= 0.1
+            father_index = np.random.randint(0,len(posible_fathers))
+            mother_index = np.random.randint(0, len(posible_fathers))
             while mother_index == father_index:
-                mother_index = np.random.randint(0, len(posible_fathers));
+                mother_index = np.random.randint(0, len(posible_fathers))
 
-            father = self.generation[father_index];
-            mother = self.generation[mother_index];
+            father = self.generation[father_index]
+            mother = self.generation[mother_index]
 
-            new_generation[i] = self.createSon(father,mother,mode="mean");
+            new_generation[i] = self.createSon(self.generation_number,father,mother,mode="mean")
+            if new_generation[i].generation_number == self.generation_number:
+                new_generation[i].addPhysical()
 
-        self.generation = new_generation;
-        self.generation_number += 1;
-        return;
+        self.generation = new_generation
 
-    def createSon(self,father,mother,mode="mean"):
+        return
+
+    def createSon(self,generation_number,father,mother,mode="diff"):
         '''
         Funcion que crea un hijo dependiendo de los atributos de los padres.
         :param father: individuo padre
@@ -99,41 +105,33 @@ class Population():
         :return: un individuo que contiene caracteristicas de ambos padres
         '''
         if mode == "mean":
-            #weights_1 = np.mean([father.weights_1, mother.weights_1]);
-            #bias_1 = np.mean([father.bias_1, mother.bias_1]);
-            #weights_2 = np.mean([father.weights_2, mother.weights_2]);
-            #bias_2 = np.mean([father.bias_2, mother.bias_2]);
             weights_1 = (np.array(father.weights_1) + np.array(mother.weights_1)) / 2
             bias_1 = (np.array(father.bias_1) + np.array(mother.bias_1)) / 2
             weights_2 = (np.array(father.weights_2) + np.array(mother.weights_2)) / 2
             bias_2 = (np.array(father.bias_2) + np.array(mother.bias_2)) / 2
-            #weights_1 = (father.weights_1 + mother.weights_1) / 2
-            #bias_1 =    (father.bias_1    + mother.bias_1   ) / 2
-            #weights_2 = (father.weights_2 + mother.weights_2) / 2
-            #bias_2 =    (father.bias_2    + mother.bias_2   ) / 2
         if mode == "diff":
-            diff = np.array(father.weights_1)-np.array(mother.weights_1);
-            weights_1 += np.random.uniform(0.,1.)*diff;
-            diff = np.array(father.bias_1) - np.array(mother.bias_1);
-            bias_1 += np.random.uniform(0., 1.) * diff;
-            diff = np.array(father.weights_2) - np.array(mother.weights_2);
-            weights_2 += np.random.uniform(0., 1.) * diff;
-            diff = np.array(father.bias_2) - np.array(mother.bias_2);
-            bias_2 += np.random.uniform(0., 1.) * diff;
+            diff = np.array(father.weights_1)-np.array(mother.weights_1)
+            weights_1 += np.random.uniform(0.,1.)*diff
+            diff = np.array(father.bias_1) - np.array(mother.bias_1)
+            bias_1 += np.random.uniform(0., 1.) * diff
+            diff = np.array(father.weights_2) - np.array(mother.weights_2)
+            weights_2 += np.random.uniform(0., 1.) * diff
+            diff = np.array(father.bias_2) - np.array(mother.bias_2)
+            bias_2 += np.random.uniform(0., 1.) * diff
         else:
-            weights_1 = None;
-            bias_1 = None;
-            weights_2 = None;
-            bias_2 = None;
+            weights_1 = None
+            bias_1 = None
+            weights_2 = None
+            bias_2 = None
 
-        return Individual(weights_1,bias_1,weights_2,bias_2);
+        return Individual(generation_number,weights_1,bias_1,weights_2,bias_2)
 
     def applyRandomMutation(self):
         '''
 
         :return:
         '''
-        return;
+        return
 
     def checkGeneration(self):
         '''
@@ -142,27 +140,27 @@ class Population():
         '''
         for i in range(len(self.generation)):
             if self.generation[i].selection_probability == 1.:
-                return self.generation[i];
+                return self.generation[i]
 
-        return None;
+        return None
 
     def getBestGeneration(self):
         '''
 
         :return:
         '''
-        best_prob = self.generation[0].selection_probability;
-        best_index = 0;
+        best_prob = self.generation[0].selection_probability
+        best_index = 0
         for i in range(len(self.generation)):
             if self.generation[i].selection_probability >= best_prob:
-                best_prob = self.generation[i].selection_probability;
-                best_index = i;
+                best_prob = self.generation[i].selection_probability
+                best_index = i
 
-        return self.generation[best_index];
+        return self.generation[best_index]
 
 
 class Individual():
-    def __init__(self,index,weights_1 = None,bias_1 = None,weights_2 = None,bias_2 = None):
+    def __init__(self,generation_number,weights_1 = None,bias_1 = None,weights_2 = None,bias_2 = None):
         '''
 
         :param weights_1: pesos de la primera capa para inicializacion
@@ -173,22 +171,19 @@ class Individual():
         '''
 
         if not np.all(weights_1):
-            self.weights_1 = np.random.uniform(-1,1,[sensors,first_hidden_layer_size]);
-            self.bias_1 = np.random.uniform(-1,1,[1,first_hidden_layer_size]);
-            self.weights_2 = np.random.uniform(-1, 1, [first_hidden_layer_size,outputs]);
-            self.bias_2 = np.random.uniform(-1, 1, [1,outputs]);
+            self.weights_1 = np.random.uniform(-1,1,[sensors,first_hidden_layer_size])
+            self.bias_1 = np.random.uniform(-1,1,[1,first_hidden_layer_size])
+            self.weights_2 = np.random.uniform(-1, 1, [first_hidden_layer_size,outputs])
+            self.bias_2 = np.random.uniform(-1, 1, [1,outputs])
         else:
-            self.weights_1 = weights_1;
-            self.bias_1 = bias_1;
-            self.weights_2 = weights_2;
-            self.bias_2 = bias_2;
+            self.weights_1 = weights_1
+            self.bias_1 = bias_1
+            self.weights_2 = weights_2
+            self.bias_2 = bias_2
 
-        self.layer1_activation_function = "relu";
-        self.selection_probability = 0.0;
-
-        # quisto90: First: create physical
-        self.physical = scene.addObject("car","car")
-        self.physical.name = "car"+str(index)
+        self.layer1_activation_function = "relu"
+        self.selection_probability = 0.0
+        self.generation_number = generation_number
 
     def calculateOutputs(self,sensor_inputs):
         '''
@@ -196,23 +191,30 @@ class Individual():
         :param sensor_inputs: entradas de los sensores (vector de unos y ceros)
         :return: steer en un rango de (:) y accelerator en un rango de (:)
         '''
-        first_layer_activation = np.dot(sensor_inputs,self.weights_1)+self.bias_1;
+        first_layer_activation = np.dot(sensor_inputs,self.weights_1)+self.bias_1
         if self.layer1_activation_function == "relu":
-            first_layer_activation = relu(first_layer_activation);
+            first_layer_activation = relu(first_layer_activation)
         elif self.layer1_activation_function == "sigmoid":
-            first_layer_activation = sigmoid(first_layer_activation);
+            first_layer_activation = sigmoid(first_layer_activation)
 
-        output_layer_activation = np.dot(first_layer_activation ,self.weights_2) + self.bias_2;
-        steer = output_layer_activation[0,0];
-        accelerator = sigmoid(output_layer_activation[0,1]);
+        output_layer_activation = np.dot(first_layer_activation ,self.weights_2) + self.bias_2
+        steer = output_layer_activation[0,0]
+        accelerator = sigmoid(output_layer_activation[0,1])
 
-        return [steer,accelerator];
+        return [steer,accelerator]
 
     def getHistograms(self):
-        weights1_dist, bin_edges = np.histogram(self.weights_1,bins=100,range=(-1,1));
-        weights2_dist, bin_edges = np.histogram(self.weights_2, bins=100, range=(-1, 1));
-        bias1_dist, bin_edges = np.histogram(self.bias_1, bins=100, range=(-1, 1));
-        bias2_dist, bin_edges = np.histogram(self.bias_2, bins=100, range=(-1, 1));
-        return [weights1_dist,bias1_dist,weights2_dist,bias2_dist];
+        weights1_dist, bin_edges = np.histogram(self.weights_1,bins=100,range=(-1,1))
+        weights2_dist, bin_edges = np.histogram(self.weights_2, bins=100, range=(-1, 1))
+        bias1_dist, bin_edges = np.histogram(self.bias_1, bins=100, range=(-1, 1))
+        bias2_dist, bin_edges = np.histogram(self.bias_2, bins=100, range=(-1, 1))
+        return [weights1_dist,bias1_dist,weights2_dist,bias2_dist]
 
+    def removeIndividual(self):
+        self.physical.endObject()
 
+    def addPhysical(self):
+        # quisto90: First: create physical
+        self.physical = scene.addObject("car", "car")
+        #self.physical['name']= 'car' + str(index)
+        #self.name = 'car'+str(index)
