@@ -1,6 +1,7 @@
 # coding=utf-8
 import numpy as np
 import bge
+import random
 scene = bge.logic.getCurrentScene()
 
 # variable global para setear la cantidad de sensores
@@ -39,7 +40,7 @@ class Population():
         self.max_iter = max_iter
         self.max_generations = max_generations
         self.generation_number = 0
-        self.generation = [Individual(i, self.generation_number) for i in range(initial_generation_size)]
+        self.generation = [Individual(self.generation_number) for i in range(initial_generation_size)]
         for i in self.generation:
             i.physical = scene.addObject("car", "car")
 
@@ -59,7 +60,7 @@ class Population():
             #self.generation[i].selection_probability = checkpoints / total_checkpoints
             self.generation[i].selection_probability = self.generation[i].physical['waypoints'] / total_checkpoints
 
-    def removeGeneration(self):
+    def removePhysicalsGeneration(self):
         '''
 
         quisto90: First: delete all physical objects from previous generation
@@ -68,35 +69,64 @@ class Population():
             self.generation[i].removeIndividual()
             #print('removed: ',self.generation[i].name)
 
-    def generateNewGeneration(self):
+    def generateNewGeneration(self,mode):
 
         self.generation_number += 1
-        new_generation = [Individual(i,self.generation_number) for i in range(len(self.generation))]
+        new_generation = [Individual(self.generation_number) for i in range(len(self.generation))]
         for i in range(len(self.generation)):
             # Seleccion de los padres para cada individuo de la nueva generacion
-            posible_fathers = []
-            adaptative_threshold = 1.
-            while len(posible_fathers) < 2:
-                threshold = np.random.uniform(0,1.*adaptative_threshold)
-                posible_fathers = [ind for ind in self.generation if (ind.selection_probability > threshold)]
-                adaptative_threshold -= 0.1
-            father_index = np.random.randint(0,len(posible_fathers))
-            mother_index = np.random.randint(0, len(posible_fathers))
-            while mother_index == father_index:
+            if mode == 'original':
+                posible_fathers = []
+                adaptative_threshold = 1.0
+                while len(posible_fathers) < 2:
+                    threshold = np.random.uniform(0, 1.0 * adaptative_threshold)
+                    posible_fathers = [ind for ind in self.generation if (ind.selection_probability > threshold)]
+                    adaptative_threshold -= 0.1
+                father_index = np.random.randint(0, len(posible_fathers))
                 mother_index = np.random.randint(0, len(posible_fathers))
+                while mother_index == father_index:
+                    mother_index = np.random.randint(0, len(posible_fathers))
+            if mode == 'new':
+                # genero vector con acumulados de probabilidad
+                a = []
+                for i, obj in enumerate(self.generation):
+                    if i - 1 < 0:
+                        a.append(self.generation[i].selection_probability)
+                    elif i + 1 > len(self.generation):
+                        break
+                    else:
+                        a.append(self.generation[i].selection_probability + a[i - 1])
+                print('vector acumulado: ', a)
 
+                # selecciono los padres:
+                parents_indexes = []
+                for i in range(2):
+                    r = np.random.uniform(0, a[-1])
+                    for i, obj in enumerate(a):
+                        if r < a[0]:
+                            parents_indexes.append(0)
+                        elif r > a[i] and r < a[i + 1]:
+                            parents_indexes.append(i + 1)
+                            break
+                if parents_indexes[0] == parents_indexes[1]:
+                    parents_indexes[1] = parents_indexes[0]-1
+                father_index = parents_indexes[0]
+                mother_index = parents_indexes[1]
+
+            print('parents_index: ', father_index, mother_index)
             father = self.generation[father_index]
             mother = self.generation[mother_index]
 
             new_generation[i] = self.createSon(self.generation_number,father,mother,mode="mean")
             if new_generation[i].generation_number == self.generation_number:
+                print('se crea fisico para ',new_generation[i].name)
                 new_generation[i].addPhysical()
 
         self.generation = new_generation
 
         return
 
-    def createSon(self,generation_number,father,mother,mode="diff"):
+    def createSon(self,generation_number,father,mother,mode):
         '''
         Funcion que crea un hijo dependiendo de los atributos de los padres.
         :param father: individuo padre
@@ -184,6 +214,7 @@ class Individual():
         self.layer1_activation_function = "relu"
         self.selection_probability = 0.0
         self.generation_number = generation_number
+        self.name = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
 
     def calculateOutputs(self,sensor_inputs):
         '''
