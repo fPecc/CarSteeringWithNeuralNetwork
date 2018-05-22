@@ -72,7 +72,7 @@ class Population():
     def generateNewGeneration(self,mode):
 
         self.generation_number += 1
-        new_generation = [Individual(self.generation_number) for i in range(len(self.generation))]
+        new_generation = []
         for i in range(len(self.generation)):
             # Seleccion de los padres para cada individuo de la nueva generacion
             if mode == 'original':
@@ -82,10 +82,10 @@ class Population():
                     threshold = np.random.uniform(0, 1.0 * adaptative_threshold)
                     posible_fathers = [ind for ind in self.generation if (ind.selection_probability > threshold)]
                     adaptative_threshold -= 0.1
-                father_index = np.random.randint(0, len(posible_fathers))
-                mother_index = np.random.randint(0, len(posible_fathers))
+                father_index = int(np.random.randint(0, len(posible_fathers)))
+                mother_index = int(np.random.randint(0, len(posible_fathers)))
                 while mother_index == father_index:
-                    mother_index = np.random.randint(0, len(posible_fathers))
+                    mother_index = int(np.random.randint(0, len(posible_fathers)))
             if mode == 'new':
                 # genero vector con acumulados de probabilidad
                 a = []
@@ -117,10 +117,12 @@ class Population():
             father = self.generation[father_index]
             mother = self.generation[mother_index]
 
-            new_generation[i] = self.createSon(self.generation_number,father,mother,mode="mean")
-            if new_generation[i].generation_number == self.generation_number:
-                print('se crea fisico para ',new_generation[i].name)
-                new_generation[i].addPhysical()
+            new_generation.append(self.createSon(self.generation_number,father,mother,mode="mean"))
+
+        for j in new_generation:
+            if j.generation_number == self.generation_number:
+                print('se crea fisico para ', j.name)
+                j.addPhysical()
 
         self.generation = new_generation
 
@@ -129,6 +131,7 @@ class Population():
     def createSon(self,generation_number,father,mother,mode):
         '''
         Funcion que crea un hijo dependiendo de los atributos de los padres.
+        :param generation_number:
         :param father: individuo padre
         :param mother: individuo madre
         :param mode: variable para controlar la forma en la cual se conbinan los padres
@@ -139,7 +142,11 @@ class Population():
             bias_1 = (np.array(father.bias_1) + np.array(mother.bias_1)) / 2
             weights_2 = (np.array(father.weights_2) + np.array(mother.weights_2)) / 2
             bias_2 = (np.array(father.bias_2) + np.array(mother.bias_2)) / 2
-        if mode == "diff":
+        elif mode == "diff":
+            weights_1 = (np.array(father.weights_1) + np.array(mother.weights_1)) / 2
+            bias_1 = (np.array(father.bias_1) + np.array(mother.bias_1)) / 2
+            weights_2 = (np.array(father.weights_2) + np.array(mother.weights_2)) / 2
+            bias_2 = (np.array(father.bias_2) + np.array(mother.bias_2)) / 2
             diff = np.array(father.weights_1)-np.array(mother.weights_1)
             weights_1 += np.random.uniform(0.,1.)*diff
             diff = np.array(father.bias_1) - np.array(mother.bias_1)
@@ -215,6 +222,7 @@ class Individual():
         self.selection_probability = 0.0
         self.generation_number = generation_number
         self.name = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
+        print('individuo creado: ',self.name)
 
     def calculateOutputs(self,sensor_inputs):
         '''
