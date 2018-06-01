@@ -29,6 +29,32 @@ def relu(x):
     '''
     return x * (x > 0)
 
+
+def crossParams(fatherParams,motherParams):
+    newparams = []
+    for i,obj in enumerate(fatherParams):
+        if np.random.uniform(0., 1.) > .5:
+            newparams.append(fatherParams[i])
+           # print(fatherParams[i].__name__,'----------------------------')
+           # print(fatherParams[i])
+        else:
+            newparams.append(motherParams[i])
+    return newparams
+
+
+def crossMutationParams(fatherParams,motherParams):
+    newparams = []
+    for i,obj in enumerate(fatherParams):
+        random = np.random.uniform(0., 1.)
+        if random > .66:
+            newparams.append(fatherParams[i])
+        elif random < .66 and random >.33:
+            newparams.append(motherParams[i])
+        else:
+            newparams.append(np.random.uniform(-1.0, 1.0))
+    return newparams
+
+
 class Population():
     def __init__(self,max_iter,max_generations,initial_generation_size):
         '''
@@ -96,7 +122,7 @@ class Population():
                         break
                     else:
                         a.append(self.generation[i].selection_probability + a[i - 1])
-                print('vector acumulado: ', a)
+                # print('vector acumulado: ', a)
 
                 # selecciono los padres:
                 parents_indexes = []
@@ -113,15 +139,15 @@ class Population():
                 father_index = parents_indexes[0]
                 mother_index = parents_indexes[1]
 
-            print('parents_index: ', father_index, mother_index)
+            # print('parents_index: ', father_index, mother_index)
             father = self.generation[father_index]
             mother = self.generation[mother_index]
 
-            new_generation.append(self.createSon(self.generation_number,father,mother,mode="mean"))
+            new_generation.append(self.createSon(self.generation_number,father,mother,mode="cross"))
 
         for j in new_generation:
             if j.generation_number == self.generation_number:
-                print('se crea fisico para ', j.name)
+                # print('se crea fisico para ', j.name)
                 j.addPhysical()
 
         self.generation = new_generation
@@ -143,10 +169,16 @@ class Population():
             weights_2 = (np.array(father.weights_2) + np.array(mother.weights_2)) / 2
             bias_2 = (np.array(father.bias_2) + np.array(mother.bias_2)) / 2
         elif mode == "diff":
-            weights_1 = (np.array(father.weights_1) + np.array(mother.weights_1)) / 2
-            bias_1 = (np.array(father.bias_1) + np.array(mother.bias_1)) / 2
-            weights_2 = (np.array(father.weights_2) + np.array(mother.weights_2)) / 2
-            bias_2 = (np.array(father.bias_2) + np.array(mother.bias_2)) / 2
+            if father.selection_probability > mother.selection_probability:
+                weights_1 = father.weights_1
+                weights_2 = father.weights_2
+                bias_1 = father.bias_1
+                bias_2 = father.bias_2
+            else:
+                weights_1 = mother.weights_1
+                weights_2 = mother.weights_2
+                bias_1 = mother.bias_1
+                bias_2 = mother.bias_2				
             diff = np.array(father.weights_1)-np.array(mother.weights_1)
             weights_1 += np.random.uniform(0.,1.)*diff
             diff = np.array(father.bias_1) - np.array(mother.bias_1)
@@ -155,6 +187,16 @@ class Population():
             weights_2 += np.random.uniform(0., 1.) * diff
             diff = np.array(father.bias_2) - np.array(mother.bias_2)
             bias_2 += np.random.uniform(0., 1.) * diff
+        elif mode == "cross":
+            weights_1 = crossParams(father.weights_1,mother.weights_1)
+            bias_1 = crossParams(father.bias_1,mother.bias_1)
+            weights_2 = crossParams(father.weights_2,mother.weights_2)
+            bias_2 = crossParams(father.bias_2, mother.bias_2)
+        elif mode == "crossMutation":
+            weights_1 = crossMutationParams(father.weights_1,mother.weights_1)
+            bias_1 = crossMutationParams(father.bias_1,mother.bias_1)
+            weights_2 = crossMutationParams(father.weights_2,mother.weights_2)
+            bias_2 = crossMutationParams(father.bias_2, mother.bias_2)
         else:
             weights_1 = None
             bias_1 = None
@@ -222,7 +264,7 @@ class Individual():
         self.selection_probability = 0.0
         self.generation_number = generation_number
         self.name = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
-        print('individuo creado: ',self.name)
+        # print('individuo creado: ',self.name)
 
     def calculateOutputs(self,sensor_inputs):
         '''
